@@ -4,45 +4,49 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Scanner;
+
+import com.mysql.cj.log.Log;
+
 import java.util.Random;
 
 public class test {
 	static Connection con;
 	static Statement stmt;
 	static ResultSet rs;
-	static Scanner sc = new Scanner(System.in);;
+	static Scanner sc = new Scanner(System.in);
+	static int status = 0;// 선택한 메뉴
+
+	static Random rnd;
+	static int input=11;
+	static String Esn = null;
+	static String Errn = null;
+	static String Ename = null;
+	static String Esex = null;
+	static String Ephone = null;
+	static String Casn = null;
+	static String CategoryName = null;
+	static String HPsn = null;
+	static String HPname = null;
+	static int HPprice = 0;
+	static String Ssn = null;
+	static String Sname = null;
+	static String Stel = null;
+	static String IPsn = null;
+	static String SelfLife = null;
+	static SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
+	static SimpleDateFormat format2 = new SimpleDateFormat("HH:mm:ss");
+	static Calendar time = Calendar.getInstance();
+	static String now_date;
+	static String now_time;
+	static String Dsn = null;
+	static String Dname = null;
+	static String Csn = null;
+	static String Cname = null;
+	static String Crrn = null;
+	static String Csex = null;
+	static String Cphone = null;
 
 	public static void main(String args[]) {
-		int status = 0;// 선택한 메뉴
-
-		Random rnd;
-
-		String Esn = null;
-		String Errn = null;
-		String Ename = null;
-		String Esex = null;
-		String Ephone = null;
-		String Casn = null;
-		String CategoryName = null;
-		String HPsn = null;
-		String HPname = null;
-		int HPprice = 0;
-		String Ssn = null;
-		String Sname = null;
-		String Stel = null;
-		String IPsn = null;
-		String SelfLife = null;
-		SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
-		SimpleDateFormat format2 = new SimpleDateFormat("HH:mm:ss");
-		Calendar time = Calendar.getInstance();
-		String now_date;
-		String now_time;
-		String Dsn = null;
-		String Csn = null;
-		String Cname = null;
-		String Crrn = null;
-		String Csex = null;
-		String Cphone = null;
 
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -52,18 +56,29 @@ public class test {
 			System.out.println(e);
 		}
 
+		while (input != 0) {
+			function();
+		}
+		try {
+			con.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public static void function() {
 		status = menu(status);
 
 		if (status == 111) {// 카테고리 및 담당 조회
 			try {
+				CATEGORYview();
 				rs = stmt.executeQuery(
 						"SELECT C.Casn, CategoryName, E.Esn, Name  FROM CATEGORY C LEFT JOIN MANAGE M ON C.Casn=M.Casn LEFT JOIN EMPLOYEE E ON E.Esn=M.Esn");
-				System.out.println("카테고리 번호	카테고리명	담당 직원 사번	담당직원 이름");
+				System.out.println("번호	카테고리	담당자 사번	담당자 이름");
 				while (rs.next())
 					System.out.println(
 							rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3) + "	" + rs.getString(4));
-
-				con.close();
 			} catch (Exception e) {
 				System.out.println(e);
 			}
@@ -87,27 +102,27 @@ public class test {
 				System.out.print("▷ 카테고리명 : ");
 				CategoryName = sc.next();
 				stmt.executeUpdate("INSERT INTO CATEGORY VALUES('" + okCasn + "', '" + CategoryName + "')");
-				System.out.println("◈ " + okCasn + " " + CategoryName + " 카테고리 추가 완료");
-				con.close();
+				System.out.println("\n◈ " + okCasn + " " + CategoryName + " 카테고리 추가 완료");
 			} catch (Exception e) {
 				System.out.println(e);
 			}
-		} else if (status == 121) {// 취급 물품조회
+		} else if (status == 113) {// 카테고리 삭제
 			try {
-				rs = stmt.executeQuery("SELECT * FROM HANDLING_PRODUCT");
-				System.out.println("번호	물품 이름	가격	카테고리	공급업체");
+				System.out.println("◈ 카테고리 목록 ◈");
+				CATEGORYview();
+				System.out.print("\n▷ 삭제할  카테고리 번호 : ");
+				Casn = sc.next();
+				rs = stmt.executeQuery("SELECT CategoryName FROM CATEGORY WHERE Casn='" + Casn + "'");// 해당 카테고리 이름
+																										// 받아옴
 				while (rs.next())
-					// System.out.println(getLPad(rs.getString(1), 20, " ")+"
-					// "+getLPad(rs.getString(2), 20, " ")+ " " + rs.getString(3) + " " +
-					// rs.getString(4) + " " + rs.getString(5));
-
-					System.out.println(getRPad(rs.getString(1), 15, " ") + "	" + rs.getString(2) + ""// getRPad(rs.getString(2),
-																										// 40, " ")
-							+ getLPad(rs.getString(3), 10, " ") + "	" + rs.getString(4) + "	" + rs.getString(5));
-				con.close();
+					CategoryName = rs.getString(1);
+				stmt.executeUpdate("DELETE FROM CATEGORY WHERE Casn='" + Casn + "'");
+				System.out.println("\n◈ " + Casn + " " + CategoryName + " 카테고리 삭제 완료");
 			} catch (Exception e) {
 				System.out.println(e);
 			}
+		} else if (status == 121) {// 취급 물품 조회
+			HPview();
 		} else if (status == 122) {// 취금물품 추가
 			try {
 				System.out.print("▷ 취급 물품 번호(모델 번호) : ");
@@ -120,15 +135,12 @@ public class test {
 				System.out.print("▷ 가격 : ");
 				HPprice = sc.nextInt();
 
-				rs = stmt.executeQuery("SELECT * FROM CATEGORY");
-				System.out.println("\n카테고리 번호	카테고리명");
-				while (rs.next())
-					System.out.println(rs.getString(1) + "	" + rs.getString(2));
+				CATEGORYview();
 				System.out.print("\n▷ 카테고리 : ");
 				CategoryName = sc.next();
 
 				rs = stmt.executeQuery("SELECT * FROM SUPPLYER");
-				System.out.println("\n공급업체 번호	공급업체명");
+				System.out.println("\n업체 번호	공급업체명");
 				while (rs.next())
 					System.out.println(rs.getString(1) + "	" + rs.getString(2));
 				System.out.print("\n▷ 공급업체 : ");
@@ -137,7 +149,69 @@ public class test {
 				stmt.executeUpdate("INSERT INTO HANDLING_PRODUCT VALUES('" + HPsn + "', '" + HPname + "', " + HPprice
 						+ ", '" + CategoryName + "', '" + Ssn + "')");
 				System.out.println("\n◈ " + HPsn + " " + HPname + " - 취급 물품 추가 완료");
-				con.close();
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		} else if (status == 123) {// 취급 물품 수정
+			try {
+				System.out.println("◈ 취급 물품 목록 ◈");
+				HPview();
+				System.out.println("\n1. 취급 물품 번호(모델명) 수정\n2. 이름 수정\n3. 가격 수정\n4. 카테고리 수정\n5. 공급업체 수정\n");
+				System.out.print("▷ 입력 : ");
+				input = sc.nextInt();
+				System.out.print("▷ 수정할 취급 물품 번호 (모델명) : ");
+				String whereInput = sc.next();
+				Scanner sc1 = new Scanner(System.in);
+				if (input == 4) {
+					CATEGORYview();
+				} else if (input == 5) {
+					System.out.println("\n번호	공급업체명");
+					rs = stmt.executeQuery("SELECT *  FROM SUPPLYER");
+					while (rs.next())
+						System.out.println(rs.getString(1) + "	" + rs.getString(2));
+				}
+				System.out.print("▷ 변경  정보 : ");
+				String setInput = sc1.nextLine();// 변경할 정보
+				String setCol = null;// 변경할 컬럼
+				try {
+					switch (input) {
+					case 1:// 취급 물품 번호(모델명) 수정
+						setCol = "HPsn";
+						break;
+					case 2:// 이름수정
+						setCol = "ProductName";
+						break;
+					case 3:// 가격 수정
+						setCol = "Price";
+						break;
+					case 4:// 카테고리 수정
+						setCol = "Casn";
+						break;
+					case 5:// 공급업체 수정
+						setCol = "Ssn";
+						break;
+					}
+					stmt.executeUpdate("UPDATE HANDLING_PRODUCT SET " + setCol + "='" + setInput + "' WHERE HPsn='"
+							+ whereInput + "'");
+				} catch (Exception e) {
+					System.out.println(e);
+				}
+				System.out.println("\n\n◈ " + whereInput + "을 " + setInput + "으로 수정 완료");
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		} else if (status == 124) {// 취급 물품 삭제
+			try {
+				System.out.println("※ 판매 내역이 있는 물품은 삭제할 수 없습니다.");
+				System.out.println("◈ 취급 물품 목록 ◈");
+				HPview();
+				System.out.print("\n▷ 삭제할  취급 물품 번호 : ");
+				HPsn = sc.next();
+				rs = stmt.executeQuery("SELECT ProductName FROM HANDLING_PRODUCT WHERE HPsn='" + HPsn + "'");
+				while (rs.next())
+					HPname = rs.getString(1);
+				stmt.executeUpdate("DELETE FROM HANDLING_PRODUCT WHERE HPsn='" + HPsn + "'");
+				System.out.println("\n◈ " + HPsn + " " + HPname + " 취급 물품에서 삭제 완료");
 			} catch (Exception e) {
 				System.out.println(e);
 			}
@@ -148,7 +222,6 @@ public class test {
 				while (rs.next())
 					System.out.println(
 							rs.getString(1) + "	" + String.format("%10s", rs.getString(2)) + "	" + rs.getString(3));
-				con.close();
 			} catch (Exception e) {
 				System.out.println(e);
 			}
@@ -164,14 +237,7 @@ public class test {
 			}
 			try {
 				System.out.println("◈ 취급 물품 목록, 카테고리, 공급업체 정보◈");
-				rs = stmt.executeQuery(
-						"SELECT HP.HPsn, HP.ProductName, HP.Price, C.CategoryName, S.SupplyerName FROM HANDLING_PRODUCT HP, SUPPLYER S, CATEGORY C WHERE HP.Ssn=S.Ssn AND HP.Casn=C.Casn");
-				System.out.println("\n번호	물품 이름	가격	카테고리	공급업체");
-				while (rs.next())
-					System.out.println(
-							String.format("%15s", rs.getString(1)) + "	" + String.format("%20s", rs.getString(2))
-									+ "	" + rs.getString(3) + "	" + rs.getString(4) + "	" + rs.getString(5));
-
+				HPview();
 				System.out.print("\n▷ 취급 물품 번호 : ");
 				HPsn = sc.next();
 
@@ -185,23 +251,38 @@ public class test {
 					SelfLife = sc.next();
 					stmt.executeUpdate("INSERT INTO INCOME_PRODUCT VALUES('" + newIPsn + "', '" + SelfLife + "', '"
 							+ HPsn + "');");
-					con.close();
 				} else {
-					System.out.println("\n※ 식품 카테고리가 아니므로 유통기한은 입력하지 않습니다.\n");
+					System.out.println("※ 식품 카테고리가 아니므로 유통기한은 입력하지 않습니다.\n");
 					stmt.executeUpdate("INSERT INTO INCOME_PRODUCT VALUES('" + newIPsn + "', NULL, '" + HPsn + "')");
 				}
 				System.out.println("\n◈ " + HPsn + "의 입고 물품 번호가 " + newIPsn + "로 지정 및 추가 완료");
 			} catch (Exception e) {
 				System.out.println(e);
 			}
+		} else if (status == 133) {// 입고 물품 삭제
+			try {
+				System.out.println("※ 판매 내역이 있는 물품은 삭제할 수 없습니다.");
+				System.out.println("◈ 입고 물품 목록 ◈");
+				rs = stmt.executeQuery("SELECT * FROM INCOME_PRODUCT");
+				System.out.println("번호	유통기한	입고 품목 번호");
+				while (rs.next())
+					System.out.println(
+							rs.getString(1) + "	" + String.format("%10s", rs.getString(2)) + "	" + rs.getString(3));
+
+				System.out.print("\n▷ 삭제할  입고 물품 번호 : ");
+				IPsn = sc.next();
+				stmt.executeUpdate("DELETE FROM INCOME_PRODUCT WHERE IPsn='" + IPsn + "'");
+				System.out.println("\n◈ " + IPsn + " 입고 물품에서 삭제 완료");
+			} catch (Exception e) {
+				System.out.println(e);
+			}
 		} else if (status == 21) {// 주문 조회
 			try {
 				rs = stmt.executeQuery("SELECT * FROM ORDERS");
-				System.out.println("취급 물품 번호	공급업체 번호	사원 번호	날짜	시간");
+				System.out.println("취급 물품 번호	업체 번호	사원 번호	날짜	시간");
 				while (rs.next())
 					System.out.println(rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3) + "	"
 							+ rs.getString(4) + "	" + rs.getString(5));
-				con.close();
 			} catch (Exception e) {
 				System.out.println(e);
 			}
@@ -221,6 +302,7 @@ public class test {
 				while (rs.next()) {
 					thisSsn = rs.getString("Ssn");
 				}
+				EMPview();
 				System.out.print("▷ 사원 번호 : ");
 				Esn = sc.next();
 
@@ -230,14 +312,13 @@ public class test {
 				stmt.executeUpdate("INSERT INTO ORDERS VALUES('" + HPsn + "', '" + thisSsn + "', '" + Esn + "', '"
 						+ now_date + "', '" + now_time + "');");
 				System.out.println(HPsn + " 주문 완료");
-				con.close();
 			} catch (Exception e) {
 				System.out.println(e);
 			}
 		} else if (status == 31) {// 판매 조회
 			try {
 				rs = stmt.executeQuery("SELECT * FROM BUY");
-				System.out.println("취급 물품 번호	입고 물품 번호	카테고리 번호	날짜	시간");
+				System.out.println("취급 물품 번호	바코드 	카테고리 번호	날짜	시간");
 				while (rs.next())
 					System.out.println(rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3) + "	"
 							+ rs.getString(4) + "	" + rs.getString(5));
@@ -265,7 +346,8 @@ public class test {
 				}
 				System.out.println("\n◈ 해당 번호 정보\n취급 품목 번호	물품 이름 ");
 				System.out.println(thisHPsn + "	" + thisHPname + "\n");
-				System.out.print("▷ 구매 고객 번호 : ");
+				CUSTOMERview();
+				System.out.print("\n▷ 구매 고객 번호 : ");
 				Csn = sc.next();
 
 				now_date = format1.format(time.getTime());
@@ -275,22 +357,12 @@ public class test {
 						+ now_date + "', '" + now_time + "')");
 				stmt.executeUpdate("DELETE FROM INCOME_PRODUCT WHERE IPsn='" + IPsn + "'");
 				System.out.println("\n◈ " + thisHPname + " " + IPsn + " " + now_date + " " + now_time + " 판매 완료");
-				con.close();
 			} catch (Exception e) {
 				System.out.println(e);
 			}
 
 		} else if (status == 41) {// 직원 신원 조회
-			try {
-				rs = stmt.executeQuery("SELECT * FROM EMPLOYEE");
-				System.out.println("사원번호	주민등록번호	이름	성별	전화번호		부서");
-				while (rs.next())
-					System.out.println(rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3) + "	"
-							+ rs.getString(4) + "	" + rs.getString(5) + "	" + rs.getString(6));
-				con.close();
-			} catch (Exception e) {
-				System.out.println(e);
-			}
+			EMPview();
 		} else if (status == 42) {// 직원 자격증 조회
 			try {
 				rs = stmt.executeQuery(
@@ -298,7 +370,6 @@ public class test {
 				System.out.println("사번	이름	소유 자격증");
 				while (rs.next())
 					System.out.println(rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3));
-				con.close();
 			} catch (Exception e) {
 				System.out.println(e);
 			}
@@ -311,7 +382,6 @@ public class test {
 			Esex = sc.next();
 			System.out.print("▷ 휴대전화번호(-포함 입력) : ");
 			Ephone = sc.next();
-
 			try {
 				System.out.print("\n◈ 참고 부서 정보 ◈\n");
 				rs = stmt.executeQuery("SELECT * FROM DEPARTMENT");
@@ -340,7 +410,37 @@ public class test {
 				stmt.executeUpdate("INSERT INTO EMPLOYEE VALUES('" + okEsn + "', '" + Errn + "', '" + Ename + "', '"
 						+ Esex + "', '" + Ephone + "', '" + Dsn + "')");
 				System.out.println("◈ " + Ename + "의 사번을 '" + okEsn + "'으로 지정 및 추가 완료");
-				con.close();
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		} else if (status == 44) {// 직원 자격증 추가
+			System.out.print("▷ 사번 : ");
+			Esn = sc.next();
+			System.out.print("▷ 자격증 : ");
+			Scanner sc1 = new Scanner(System.in);
+			String certification = sc1.nextLine();
+			try {
+				stmt.executeUpdate("INSERT INTO EMP_CERTIFICATION VALUES('" + Esn + "', '" + certification + "')");
+				System.out.println("◈ " + Esn + "의 자격증 정보에 '" + certification + "' 추가 완료");
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		} else if (status == 45) {// 직원 삭제
+			try {
+				System.out.println("※ 주문 내역이 있는 사원은 삭제할 수 없습니다.");
+				System.out.println("◈ 직원 목록 ◈");
+				rs = stmt.executeQuery("SELECT * FROM EMPLOYEE");
+				System.out.println("사원번호	주민등록번호	이름	성별	전화번호		부서");
+				while (rs.next())
+					System.out.println(rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3) + "	"
+							+ rs.getString(4) + "	" + rs.getString(5) + "	" + rs.getString(6));
+				System.out.print("\n▷ 삭제할  사원 번호 : ");
+				Esn = sc.next();
+				rs = stmt.executeQuery("SELECT Name FROM EMPLOYEE WHERE Esn='" + Esn + "'");
+				while (rs.next())
+					Ename = rs.getString(1);
+				stmt.executeUpdate("DELETE FROM EMPLOYEE WHERE Esn='" + Esn + "'");
+				System.out.println("\n◈ " + Esn + " " + Ename + " 직원 삭제 완료");
 			} catch (Exception e) {
 				System.out.println(e);
 			}
@@ -359,14 +459,13 @@ public class test {
 				while (rs.next())
 					System.out.println(
 							rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3) + "	" + rs.getString(4));
-				con.close();
 			} catch (Exception e) {
 				System.out.println(e);
 			}
 		} else if (status == 52) {// 부서 추가
 			try {
 				System.out.print("▷ 추가 부서명 :");
-				String Dname = sc.next();
+				Dname = sc.next();
 				String thisDsn = null;
 				rs = stmt.executeQuery("SELECT Dsn FROM DEPARTMENT ORDER BY Dsn DESC LIMIT 1");
 				while (rs.next()) {
@@ -385,8 +484,24 @@ public class test {
 					okDsn = "D" + Integer.toString(tmpEsn);
 
 				stmt.executeUpdate("INSERT INTO DEPARTMENT VALUES('" + okDsn + "', '" + Dname + "')");
-				System.out.println(okDsn + " 부서 추가 완료");
-				con.close();
+				System.out.println("◈" + okDsn + "으로 부서 추가 완료");
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		} else if (status == 53) {// 부서 삭제
+			try {
+				System.out.println("◈ 부서 목록 ◈");
+				rs = stmt.executeQuery("SELECT * FROM DEPARTMENT");
+				System.out.println("부서 번호	부서명");
+				while (rs.next())
+					System.out.println(rs.getString(1) + "	" + rs.getString(2));
+				System.out.print("\n▷ 삭제할  부서 번호 : ");
+				Dsn = sc.next();
+				rs = stmt.executeQuery("SELECT DepartmentName FROM DEPARTMENT WHERE Dsn='" + Dsn + "'");
+				while (rs.next())
+					Dname = rs.getString(1);
+				stmt.executeUpdate("DELETE FROM DEPARTMENT WHERE Dsn='" + Dsn + "'");
+				System.out.println("\n◈ " + Dsn + " " + Dname + " 부서 삭제 완료");
 			} catch (Exception e) {
 				System.out.println(e);
 			}
@@ -396,7 +511,6 @@ public class test {
 				System.out.println("업체 번호	업체명	전화번호");
 				while (rs.next())
 					System.out.println(rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3));
-				con.close();
 			} catch (Exception e) {
 				System.out.println(e);
 			}
@@ -424,22 +538,30 @@ public class test {
 				Stel = sc.next();
 
 				stmt.executeUpdate("INSERT INTO SUPPLYER VALUES('" + okSsn + "', '" + Sname + "', '" + Stel + "')");
-				System.out.println("\n◈ 공급업체 " + Sname + "을 '" + okSsn + "'번호로 할당해 추가 완료");
-				con.close();
+				System.out.println("\n◈ 공급업체 " + Sname + "을(를) '" + okSsn + "'번호로 할당해 추가 완료");
 			} catch (Exception e) {
 				System.out.println(e);
 			}
-		} else if (status == 71) {// 직원 신원 조회
+		} else if (status == 63) {// 공급업체 삭제
 			try {
-				rs = stmt.executeQuery("SELECT * FROM CUSTOMER");
-				System.out.println("고객번호	주민등록번호	이름	성별	전화번호");
+				System.out.println("※ 업체 삭제시 해당 업체가 공급하는 품목도 삭제됩니다.");
+				System.out.println("◈ 공급업체 목록 ◈");
+				rs = stmt.executeQuery("SELECT * FROM SUPPLYER");
+				System.out.println("업체 번호	부서명");
 				while (rs.next())
-					System.out.println(rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3) + "	"
-							+ rs.getString(4) + "	" + rs.getString(5));
-				con.close();
+					System.out.println(rs.getString(1) + "	" + rs.getString(2));
+				System.out.print("\n▷ 삭제할  업체 번호 : ");
+				Ssn = sc.next();
+				rs = stmt.executeQuery("SELECT SupplyerName FROM SUPPLYER WHERE Ssn='" + Ssn + "'");
+				while (rs.next())
+					Sname = rs.getString(1);
+				stmt.executeUpdate("DELETE FROM SUPPLYER WHERE Ssn='" + Ssn + "'");
+				System.out.println("\n◈ " + Ssn + " " + Sname + " 공급업체 삭제 완료");
 			} catch (Exception e) {
 				System.out.println(e);
 			}
+		} else if (status == 71) {// 고객 조회
+			CUSTOMERview();
 		} else if (status == 72) {// 고객 추가
 			System.out.print("▷ 이름 : ");
 			Cname = sc.next();
@@ -470,8 +592,26 @@ public class test {
 
 				stmt.executeUpdate("INSERT INTO CUSTOMER VALUES('" + okCsn + "', '" + Crrn + "', '" + Cname + "', '"
 						+ Csex + "', '" + Cphone + "')");
-				System.out.println(Cname+"을 ;"+okCsn + "'번호로 할당해 고객 추가 완료");
-				con.close();
+				System.out.println(Cname + "을(를) '" + okCsn + "'번호로 할당해 고객 추가 완료");
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		} else if (status == 73) {// 고객 삭제
+			try {
+				System.out.println("※ 거래 내역이 있는 고객은 삭제되지 않습니다.");
+				System.out.println("◈ 고객 목록 ◈");
+				rs = stmt.executeQuery("SELECT * FROM CUSTOMER");
+				System.out.println("고객 번호	주민등록번호	이름	성별	전화번호");
+				while (rs.next())
+					System.out.println(rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3) + "	"
+							+ rs.getString(4) + "	" + rs.getString(5));
+				System.out.print("\n▷ 삭제할  고객 번호 : ");
+				Csn = sc.next();
+				rs = stmt.executeQuery("SELECT Name FROM CUSTOMER WHERE Csn='" + Csn + "'");
+				while (rs.next())
+					Cname = rs.getString(1);
+				stmt.executeUpdate("DELETE FROM CUSTOMER WHERE Csn='" + Csn + "'");
+				System.out.println("\n◈ " + Csn + " " + Cname + " 고객 삭제 완료");
 			} catch (Exception e) {
 				System.out.println(e);
 			}
@@ -480,11 +620,10 @@ public class test {
 
 	public static int menu(int status) {
 		status = 0;
-		System.out.println("▼ Mart Management System\n\n" + "1. 물품 관리\n" + "2. 주문 관리\n" + "3. 판매 관리\n" + "4. 직원 관리\n"
-				+ "5. 부서 관리\n" + "6. 업체 관리\n" + "7. 고객 관리\n");
-		// sc = new Scanner(System.in);
+		System.out.println("\n▼ Mart Management System\n" + "1. 물품 관리\n" + "2. 주문 관리\n" + "3. 판매 관리\n" + "4. 직원 관리\n"
+				+ "5. 부서 관리\n" + "6. 업체 관리\n" + "7. 고객 관리\n"+"0. 종료\n");
 		System.out.print("▷ 선택 : ");
-		int input = sc.nextInt();
+		input = sc.nextInt();
 		if (input == 1) {// 1. 물품관리
 			System.out.println("\n▼ 물품 관리");
 			System.out.println("1. 카테고리 관리\n" + "2. 취급 물품 관리\n" + "3. 입고 물품 관리\n");
@@ -492,8 +631,8 @@ public class test {
 			input = sc.nextInt();
 			if (input == 1) {// 1-1. 카테고리
 				System.out.println("\n▼ 카테고리 관리");
-				System.out.println("1. 카테고리 및 담당 조회\n2. 카테고리 추가\n");
-				System.out.print("▷ 선택 : ");
+				System.out.println("1. 카테고리 및 담당 조회\n2. 카테고리 추가\n3. 카테고리 삭제");
+				System.out.print("\n▷ 선택 : ");
 				input = sc.nextInt();
 				if (input == 1) {// 1-1-1
 					System.out.println("\n▼ 카테고리 및 담당 조회");
@@ -501,10 +640,13 @@ public class test {
 				} else if (input == 2) {// 1-1-2
 					System.out.println("\n▼ 카테고리 추가");
 					status = 112;
+				} else if (input == 3) {// 1-1-3
+					System.out.println("\n▼ 카테고리 삭제");
+					status = 113;
 				}
 			} else if (input == 2) {// 1-2. 취급 물품
 				System.out.println("\n▼ 취급 물품 관리");
-				System.out.println("1. 취급 물품 조회\n2. 취급 물품 추가\n");
+				System.out.println("1. 취급 물품 조회\n2. 취급 물품 추가\n3. 취급 물품 수정\n4. 취급 물품 삭제\n");
 				System.out.print("▷ 선택 : ");
 				input = sc.nextInt();
 				if (input == 1) {// 1-2-1
@@ -513,10 +655,16 @@ public class test {
 				} else if (input == 2) {// 1-2-2
 					System.out.println("\n▼ 취급 물품 추가");
 					status = 122;
+				} else if (input == 3) {// 1-2-3
+					System.out.println("\n▼ 취급 물품 수정");
+					status = 123;
+				} else if (input == 4) {// 1-2-3
+					System.out.println("\n▼ 취급 물품 삭제");
+					status = 124;
 				}
 			} else if (input == 3) {// 1-3. 입고 물품
 				System.out.println("\n▼ 입고 물품 관리");
-				System.out.println("1. 입고 물품 조회\n2. 입고 물품 추가\n");
+				System.out.println("1. 입고 물품 조회\n2. 입고 물품 추가\n3. 입고 물품 삭제");
 				System.out.print("▷ 선택 : ");
 				input = sc.nextInt();
 				if (input == 1) {// 1-3-1
@@ -525,6 +673,9 @@ public class test {
 				} else if (input == 2) {// 1-3-2
 					System.out.println("\n▼ 입고 물품 추가 (바코드 번호 입력)");
 					status = 132;
+				} else if (input == 3) {// 1-3-3
+					System.out.println("\n▼ 입고 물품 삭제");
+					status = 133;
 				}
 			}
 		} else if (input == 2) {// 2. 주문관리
@@ -553,7 +704,7 @@ public class test {
 			}
 		} else if (input == 4) {// 4. 직원관리
 			System.out.println("\n▼ 직원 관리");
-			System.out.println("1. 직원 조회\n" + "2. 업무배치를 위한 직원 자격증 조회\n" + "3. 직원 추가\n");
+			System.out.println("1. 직원 조회\n" + "2. 업무배치를 위한 직원 자격증 조회\n" + "3. 직원 추가\n4. 직원 자격증 추가\n5. 직원 삭제");
 			System.out.print("▷ 선택 : ");
 			input = sc.nextInt();
 			if (input == 1) {// 4-1. 직원조회
@@ -565,10 +716,16 @@ public class test {
 			} else if (input == 3) {// 4-3
 				System.out.println("\n▼ 직원 추가");
 				status = 43;
+			} else if (input == 4) {// 4-4
+				System.out.println("\n▼ 직원 자격증 추가");
+				status = 44;
+			} else if (input == 5) {// 4-5
+				System.out.println("\n▼ 직원 삭제");
+				status = 45;
 			}
 		} else if (input == 5) {// 5. 부서관리
 			System.out.println("\n▼ 부서 관리");
-			System.out.println("1. 부서 및 부서별 소속 직원 조회\n" + "2. 부서 추가\n");
+			System.out.println("1. 부서 및 부서별 소속 직원 조회\n" + "2. 부서 추가\n3. 부서 삭제");
 			System.out.print("▷ 선택 : ");
 			input = sc.nextInt();
 			if (input == 1) {// 5-1. 부서조회
@@ -577,22 +734,28 @@ public class test {
 			} else if (input == 2) {// 5-2
 				System.out.println("\n▼ 부서 추가");
 				status = 52;
+			} else if (input == 3) {// 5-2
+				System.out.println("\n▼ 부서 삭제");
+				status = 53;
 			}
 		} else if (input == 6) {// 6. 업체관리
 			System.out.println("\n▼ 업체 관리");
-			System.out.println("1. 업체 조회\n" + "2. 업체 추가\n");
+			System.out.println("1. 업체 조회\n" + "2. 업체 추가\n3. 업체 삭제");
 			System.out.print("▷ 선택 : ");
 			input = sc.nextInt();
-			if (input == 1) {// 6-1. 업체조회
+			if (input == 1) {
 				System.out.println("\n▼ 업체 조회");
 				status = 61;
-			} else if (input == 2) {// 6-2
+			} else if (input == 2) {
 				System.out.println("\n▼ 업체 추가");
 				status = 62;
+			} else if (input == 3) {
+				System.out.println("\n▼ 업체 삭제");
+				status = 63;
 			}
 		} else if (input == 7) {// 7. 고객관리
 			System.out.println("\n▼ 고객 관리");
-			System.out.println("1. 고객 조회\n" + "2. 고객 추가\n");
+			System.out.println("1. 고객 조회\n" + "2. 고객 추가\n3. 고객 삭제");
 			System.out.print("▷ 선택 : ");
 			input = sc.nextInt();
 			if (input == 1) {//
@@ -601,49 +764,98 @@ public class test {
 			} else if (input == 2) {
 				System.out.println("\n▼ 고객 추가");
 				status = 72;
+			} else if (input == 3) {
+				System.out.println("\n▼ 고객 삭제");
+				status = 73;
 			}
 		}
+
 		return status;
-
 	}
 
-	public static String getLPad(String str, int size, String strFillText) { // Fill string blanks
-		for (int i = (str.getBytes()).length; i < size; i++) {
-			str = strFillText + str;
+	public static void CUSTOMERview() {
+		try {
+			rs = stmt.executeQuery("SELECT * FROM CUSTOMER");
+			System.out.println("고객 번호	주민등록번호	이름	성별	전화번호");
+			while (rs.next())
+				System.out.println(rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3) + "	"
+						+ rs.getString(4) + "	" + rs.getString(5));
+		} catch (Exception e) {
+			System.out.println(e);
 		}
-		return str;
 	}
 
-	public static String getRPad(String str, int size, String strFillText) { // Fill string blanks
-		for (int i = (str.getBytes()).length; i < size; i++) {
-			str += strFillText;
+	public static void CATEGORYview() {
+		try {
+			System.out.println("번호	카테고리명");
+			rs = stmt.executeQuery("SELECT *  FROM CATEGORY");
+			while (rs.next())
+				System.out.println(rs.getString(1) + "	" + rs.getString(2));
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return str;
 	}
 
-	public static String appendSpace(String str, int len) {
-		int length = str.getBytes().length;
-		String tempStr = str;
+	public static void HPview() {// 취급 물폼 조회 줄맞춤
+		try {
+			rs = stmt.executeQuery(
+					"SELECT HP.HPsn, HP.ProductName, HP.Price, C.Casn, C.CategoryName, S.Ssn, S.SupplyerName FROM HANDLING_PRODUCT HP, SUPPLYER S, CATEGORY C WHERE HP.Ssn=S.Ssn AND HP.Casn=C.Casn");
+			System.out.println("번호	                  물품 이름	                 가격	카테고리 번호	카테고리명	업체 번호	업체명");
+			while (rs.next())
+				if (rs.getString(1).length() < 5 && rs.getString(2).length() < 5)
+					System.out.println(rs.getString(1) + "       	" + rs.getString(2) + "       	" + rs.getString(3)
+							+ "	" + rs.getString(4) + "   	" + rs.getString(5) + "	" + rs.getString(6) + "	"
+							+ rs.getString(7));
+				else if (rs.getString(1).length() < 5 && rs.getString(2).length() < 10)
+					System.out.println(rs.getString(1) + "       	" + rs.getString(2) + "     	" + rs.getString(3)
+							+ "	" + rs.getString(4) + "   	" + rs.getString(5) + "	" + rs.getString(6) + "	"
+							+ rs.getString(7));
+				else if (rs.getString(1).length() < 5 && rs.getString(2).length() >= 10)
+					System.out.println(rs.getString(1) + "       	" + rs.getString(2) + "	" + rs.getString(3) + "	"
+							+ rs.getString(4) + "   	" + rs.getString(5) + "	" + rs.getString(6) + "	"
+							+ rs.getString(7));
 
-		if (length < len) {
-			int endCount = len - length;
-			for (int i = 0; i < endCount; i++) {
-				str = str + " ";
-			}
-		} else if (length > len) {
-			byte[] temp = new byte[len];
-			System.arraycopy(str.getBytes(), 0, temp, 0, len);
-			str = new String(temp);
-		} else {
+				else if (rs.getString(1).length() < 10 && rs.getString(2).length() < 5)
+					System.out.println(rs.getString(1) + "     	" + rs.getString(2) + "       	" + rs.getString(3)
+							+ "	" + rs.getString(4) + "   	" + rs.getString(5) + "	" + rs.getString(6) + "	"
+							+ rs.getString(7));
+				else if (rs.getString(1).length() < 10 && rs.getString(2).length() < 10)
+					System.out.println(rs.getString(1) + "     	" + rs.getString(2) + "     	" + rs.getString(3)
+							+ "	" + rs.getString(4) + "   	" + rs.getString(5) + "	" + rs.getString(6) + "	"
+							+ rs.getString(7));
+				else if (rs.getString(1).length() < 10 && rs.getString(2).length() >= 10)
+					System.out.println(rs.getString(1) + "     	" + rs.getString(2) + "	" + rs.getString(3) + "	"
+							+ rs.getString(4) + "   	" + rs.getString(5) + "	" + rs.getString(6) + "	"
+							+ rs.getString(7));
+
+				else if (rs.getString(1).length() >= 10 && rs.getString(2).length() < 5)
+					System.out.println(rs.getString(1) + "	" + rs.getString(2) + "       	" + rs.getString(3) + "	"
+							+ rs.getString(4) + "   	" + rs.getString(5) + "	" + rs.getString(6) + "	"
+							+ rs.getString(7));
+				else if (rs.getString(1).length() >= 10 && rs.getString(2).length() < 10)
+					System.out.println(rs.getString(1) + "	" + rs.getString(2) + "     	" + rs.getString(3) + "	"
+							+ rs.getString(4) + "   	" + rs.getString(5) + "	" + rs.getString(6) + "	"
+							+ rs.getString(7));
+				else if (rs.getString(1).length() >= 10 && rs.getString(2).length() < 5)
+					System.out.println(
+							rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3) + "	" + rs.getString(4)
+									+ "   	" + rs.getString(5) + "	" + rs.getString(6) + "	" + rs.getString(7));
+		} catch (Exception e) {
+			System.out.println(e);
 		}
+	}
 
-		if (str.length() == 0) {
-			byte[] temp = new byte[len];
-			System.arraycopy(tempStr.getBytes(), 0, temp, 0, len - 1);
-			str = new String(temp);
+	public static void EMPview() {
+		try {
+			rs = stmt.executeQuery("SELECT * FROM EMPLOYEE");
+			System.out.println("사원번호	주민등록번호	이름	성별	전화번호		부서");
+			while (rs.next())
+				System.out.println(rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3) + "	"
+						+ rs.getString(4) + "	" + rs.getString(5) + "	" + rs.getString(6));
+		} catch (Exception e) {
+			System.out.println(e);
 		}
-
-		return str;
 	}
 
 }
