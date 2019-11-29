@@ -75,7 +75,7 @@ public class test {
 				CATEGORYview();
 				rs = stmt.executeQuery(
 						"SELECT C.Casn, CategoryName, E.Esn, Name  FROM CATEGORY C LEFT JOIN MANAGE M ON C.Casn=M.Casn LEFT JOIN EMPLOYEE E ON E.Esn=M.Esn");
-				System.out.println("번호	카테고리	담당자 사번	담당자 이름");
+				System.out.println("\n번호	카테고리	담당자 사번	담당자 이름");
 				while (rs.next())
 					System.out.println(
 							rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3) + "	" + rs.getString(4));
@@ -318,7 +318,7 @@ public class test {
 		} else if (status == 31) {// 판매 조회
 			try {
 				rs = stmt.executeQuery("SELECT * FROM BUY");
-				System.out.println("취급 물품 번호	바코드 	카테고리 번호	날짜	시간");
+				System.out.println("취급 물품 번호	바코드 	고객 번호	날짜	시간");
 				while (rs.next())
 					System.out.println(rs.getString(1) + "	" + rs.getString(2) + "	" + rs.getString(3) + "	"
 							+ rs.getString(4) + "	" + rs.getString(5));
@@ -414,6 +414,7 @@ public class test {
 				System.out.println(e);
 			}
 		} else if (status == 44) {// 직원 자격증 추가
+			EMPview();
 			System.out.print("▷ 사번 : ");
 			Esn = sc.next();
 			System.out.print("▷ 자격증 : ");
@@ -426,6 +427,7 @@ public class test {
 				System.out.println(e);
 			}
 		} else if (status == 45) {// 직원 삭제
+			EMPview();
 			try {
 				System.out.println("※ 주문 내역이 있는 사원은 삭제할 수 없습니다.");
 				System.out.println("◈ 직원 목록 ◈");
